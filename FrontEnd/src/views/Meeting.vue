@@ -123,6 +123,7 @@ export default {
       axios.post('http://localhost:8080/newassembleia/1', meetingData)
         .then(response => {
           console.log(response.data);
+          this.meetings.push(response.data);
           this.resetForm();
           this.closeModal();
         })

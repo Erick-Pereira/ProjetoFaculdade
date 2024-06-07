@@ -7,24 +7,27 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
-    @Table(name="Achado")
+@Table(name="Achado")
 public class AchadoModel {
-	
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private int id;
-	@Column(nullable= false)
-	private String descricaoAchado;
-	@Column(nullable= false)
-	private String tituloAchado;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int id;
+
     @Column(nullable= false)
-    private Date data;
-	@ManyToOne
-	private UsuarioModel usuario;
+    private String descricaoAchado;
+
+    @Column(nullable= false)
+    private String tituloAchado;
+
+    @Column(nullable= false)
+    private LocalDate data;
+
+    @ManyToOne
+    private UsuarioModel usuario;
 
     public int getId() {
         return id;
@@ -50,11 +53,11 @@ public class AchadoModel {
         this.tituloAchado = tituloAchado;
     }
 
-    public Date getData() {
+    public LocalDate getData() {
         return data;
     }
 
-    public void setData(Date data) {
+    public void setData(LocalDate data) {
         this.data = data;
     }
 
@@ -65,6 +68,4 @@ public class AchadoModel {
     public void setUsuario(UsuarioModel usuario) {
         this.usuario = usuario;
     }
-
-	}
-
+}

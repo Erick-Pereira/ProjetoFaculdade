@@ -49,7 +49,7 @@ onMounted(fetchData);
 
 // Roteamento
 const router = useRouter();
-const goToReserve = () => router.push({ name: 'Reserve' });
+const goToReserve = () => router.push({ name: 'CalendarReserve' });
 const goToOccurrence = () => router.push({ name: 'Occurrence' });
 const goToMeeting = () => router.push({ name: 'Meeting' });
 

@@ -1,6 +1,7 @@
 package com.senac.CondoConnect.Model;
 
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import jakarta.persistence.Column;
@@ -26,7 +27,7 @@ public class ReservaModel {
 	@Column(nullable= false)
 	private String espaco;
 	@Column(nullable= false)
-	private Date data;
+	private LocalDate data;
 	
 	public int getId() {
 		return id;
@@ -52,12 +53,11 @@ public class ReservaModel {
 	public void setEspaco(String espaco) {
 		this.espaco = espaco;
 	}
-	public Date getData() {
-		return data;
-	}
-	public void setData(Date dataInicio) {
-		this.data = dataInicio;
-	}
-
+    public LocalDate getData() {
+        return data;
+    }
+    public void setData(LocalDate data) {
+        this.data = data;
+    }
 	
 }

@@ -6,8 +6,8 @@
         <form @submit.prevent="signUpUser">
           <input type="text" placeholder="Nome completo" required name="signupName" ref="signupName" autocomplete="name"/>
           <input type="text" placeholder="Complemento" required name="signupFlat" ref="signupFlat" autocomplete="address-level2"/>
-          <input type="emailUsuario" placeholder="E-mail" required name="signupemailUsuario" ref="signupemailUsuario" autocomplete="emailUsuario"/>
-          <input type="senhaUsuario" placeholder="Senha" required name="signupsenhaUsuario" ref="signupsenhaUsuario" autocomplete="new-senhaUsuario"/>
+          <input type="email" placeholder="E-mail" required name="signupemailUsuario" ref="signupemailUsuario" autocomplete="emailUsuario"/>
+          <input type="password" placeholder="Senha" required name="signupsenhaUsuario" ref="signupsenhaUsuario" autocomplete="new-senhaUsuario"/>
           <div class="checkbox">
             <input type="checkbox" id="signupCheck"/>
             <label for="signupCheck">Eu aceito os <strong>Termos de uso</strong> e <strong>Política de privacidade</strong></label>
@@ -18,8 +18,8 @@
       <div class="form login">
         <header>Login</header>
         <form @submit.prevent="loginUser">
-          <input type="emailUsuario" placeholder="E-mail" required name="emailUsuario" ref="emailUsuario" autocomplete="emailUsuario"/>
-          <input type="senhaUsuario" placeholder="Senha" required name="senhaUsuario" ref="senhaUsuario" autocomplete="current-senhaUsuario"/>
+          <input type="email" placeholder="E-mail" required name="emailUsuario" ref="emailUsuario" autocomplete="emailUsuario"/>
+          <input type="password" placeholder="Senha" required name="senhaUsuario" ref="senhaUsuario" autocomplete="current-senhaUsuario"/>
           <input type="submit" value="Entrar"/>
         </form>
       </div>

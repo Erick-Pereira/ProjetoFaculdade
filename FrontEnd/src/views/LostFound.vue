@@ -111,6 +111,7 @@ export default {
       axios.post('http://localhost:8080/newachado/1', lostfoundData)
         .then(response => {
           console.log(response.data);
+          this.lostfounds.push(response.data);
           this.resetForm();
           this.closeModal();
         })

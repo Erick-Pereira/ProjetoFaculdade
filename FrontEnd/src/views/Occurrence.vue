@@ -4,13 +4,13 @@
       <h4>Ocorrências</h4>
       <h6>Condomínio >> Ocorrências >> Alterar</h6>
     </div>
- 
+
     <div class="container">
       <div class="header">
         <i class="bx bx-bell icon"><span>Ocorrências</span></i>
         <button @click="openModal(null)" id="new">Criar Ocorrências</button>
       </div>
- 
+
       <div class="table">
         <table>
           <thead>
@@ -24,8 +24,8 @@
           </thead>
           <tbody>
             <tr v-for="(occurrence, index) in occurrences" :key="index">
-              <td>{{ occurrence ? occurrence.titulo : '' }}</td>
-              <td>{{ occurrence ? occurrence.descricao : '' }}</td>
+              <td>{{ occurrence ? occurrence.tituloComunicado : '' }}</td>
+              <td>{{ occurrence ? occurrence.descricaoComunicado : '' }}</td>
               <td>{{ occurrence ? occurrence.data : '' }}</td>
               <td class="action"><button @click="openModal(occurrence)"><i class='bx bx-edit'></i></button></td>
               <td class="action"><button @click="deleteItem(occurrence.id)"><i class='bx bx-trash'></i></button></td>
@@ -33,14 +33,14 @@
           </tbody>
         </table>
       </div>
- 
+
       <div class="modal-container">
         <div class="modal">
           <form>
             <label for="m-title">Título</label>
-            <input id="m-title" v-model="titulo" type="text" required/>
+            <input id="m-title" v-model="tituloComunicado" type="text" required/>
             <label for="m-description">Descrição</label>
-            <input id="m-description" v-model="descricao" type="text" required/>
+            <input id="m-description" v-model="descricaoComunicado" type="text" required/>
             <label for="m-date">Data</label>
             <input id="m-date" v-model="data" type="date" required/>
             <button @click.prevent="saveItem">{{ isEditing ? 'Atualizar' : 'Salvar' }}</button>
@@ -50,16 +50,16 @@
     </div>
   </div>
 </template>
- 
+
 <script>
 import axios from 'axios';
- 
+
 export default {
   data() {
     return {
       occurrences: [],
-      titulo: '',
-      descricao: '',
+      tituloComunicado: '',
+      descricaoComunicado: '',
       data: '',
       isEditing: false,
       editId: null
@@ -69,9 +69,9 @@ export default {
     openModal(occurrence) {
       if (occurrence) {
         this.isEditing = true;
-        this.titulo = occurrence.titulo;
-        this.descricao = occurrence.descricao;
-        this.data = occurrence.data;
+        this.tituloComunicado = occurrence.tituloComunicado;
+        this.descricaoComunicado = occurrence.descricaoComunicado;
+        this.data = occurrence.data.split('T')[0]; // Ajuste para remover a hora
         this.editId = occurrence.id;
       } else {
         this.isEditing = false;
@@ -90,14 +90,14 @@ export default {
       }
     },
     saveItem() {
-      if (!this.titulo || !this.descricao || !this.data) {
+      if (!this.tituloComunicado || !this.descricaoComunicado || !this.data) {
         alert('Por favor, preencha todos os campos.');
         return;
       }
 
       const occurrenceData = {
-        titulo: this.titulo,
-        descricao: this.descricao,
+        tituloComunicado: this.tituloComunicado,
+        descricaoComunicado: this.descricaoComunicado,
         data: this.data,
       };
 
@@ -108,9 +108,10 @@ export default {
       }
     },
     createItem(occurrenceData) {
-      axios.post('http://localhost:8080/newcomunidado/1', occurrenceData)
+      axios.post('http://localhost:8080/newcomunicado/1', occurrenceData)
         .then(response => {
           console.log(response.data);
+          this.occurrences.push(response.data);
           this.resetForm();
           this.closeModal();
         })
@@ -119,24 +120,24 @@ export default {
         });
     },
     updateItem(occurrenceData) {
-        axios.put(`http://localhost:8080/putcomunidado/${this.editId}`, occurrenceData)
-            .then(response => {
-                console.log('Atualizado com sucesso:', response.data);
-                const index = this.occurrences.findIndex(item => item.id === this.editId);
-                if (index !== -1) {
-                    this.occurrences.splice(index, 1, response.data);
-                }
-                this.resetForm();
-                this.closeModal();
-            })
-            .catch(error => {
-                console.error('Erro ao atualizar:', error);
-            });
+      axios.put(`http://localhost:8080/putcomunicado/${this.editId}`, occurrenceData)
+        .then(response => {
+          console.log('Atualizado com sucesso:', response.data);
+          const index = this.occurrences.findIndex(item => item.id === this.editId);
+          if (index !== -1) {
+            this.occurrences.splice(index, 1, response.data);
+          }
+          this.resetForm();
+          this.closeModal();
+        })
+        .catch(error => {
+          console.error('Erro ao atualizar:', error);
+        });
     },
     deleteItem(id) {
       const confirmDelete = confirm('Tem certeza que deseja excluir?');
       if (confirmDelete) {
-        axios.delete(`http://localhost:8080/deletecomunidado/${id}`)
+        axios.delete(`http://localhost:8080/deletecomunicado/${id}`)
           .then(response => {
             console.log('Excluído com sucesso:', response.data);
             this.occurrences = this.occurrences.filter(occurrence => occurrence.id !== id);
@@ -147,8 +148,8 @@ export default {
       }
     },
     resetForm() {
-      this.titulo = '';
-      this.descricao = '';
+      this.tituloComunicado = '';
+      this.descricaoComunicado = '';
       this.data = '';
     },
     closeModal() {
@@ -158,7 +159,7 @@ export default {
     }
   },
   mounted() {
-    axios.get('http://localhost:8080/comunidadouser/1')
+    axios.get('http://localhost:8080/comunicadouser/1')
       .then(response => {
         this.occurrences = response.data;
       })

@@ -18,89 +18,92 @@ import com.senac.CondoConnect.service.UsuarioService;
 import jakarta.validation.Valid;
 
 @RestController
-@CrossOrigin( origins  = "*")
+@CrossOrigin(origins = "*")
 public class AchadoController {
-@Autowired
-	AchadoService achadoservice; 
-	@Autowired
-	UsuarioService usuarioservice; 
-	
-	@PostMapping(value ="/newachado/{id}") //retorna 201
-	public ResponseEntity<Object> saveAchado(@RequestBody @Valid AchadoRecord achadodto, @PathVariable("id") int id) {
+    @Autowired
+    AchadoService achadoService;
+    
+    @Autowired
+    UsuarioService usuarioService;
 
-		Optional<UsuarioModel> usuariomodel = usuarioservice.findById(id);
-		var achadomodel = new AchadoModel();
-		BeanUtils.copyProperties(achadodto, achadomodel);
-		achadomodel.setUsuario(usuariomodel.get());
-		//return ResponseEntity.status(HttpStatus.CREATED).body(achadomodel);
-		return ResponseEntity.status(HttpStatus.CREATED).body(achadoservice.save(achadomodel));
-	}
-	
-	@GetMapping(value = "/achado")
-	public ResponseEntity<List<AchadoModel>> getAchado(){
-		List<AchadoModel> achado = achadoservice.findAll();
-		
-		if (achado.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(achado);
-			
-		}
-			return ResponseEntity.status(HttpStatus.OK).body(achado);
-	}
-	
-	@GetMapping(value ="/achado/{id}")
-	public ResponseEntity<Object> getAchadoDetails(@PathVariable("id") int id) {
-		Optional<AchadoModel> achado = achadoservice.findById(id);
-		
-		if(!achado.isPresent()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("achado not found.");
-		}
-		return ResponseEntity.status(HttpStatus.OK).body(achado.get());
-	}
-	
-	@DeleteMapping(value = "/deleteachado/{id}")
-	public ResponseEntity<Object> deleteAchado(@PathVariable("id") int id ){
-		Optional<AchadoModel> blogappModelOptional = achadoservice.findById(id);
-		
-		if(!blogappModelOptional.isPresent()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("achado not found.");
-		}
-		achadoservice.delete(blogappModelOptional.get());
-		return ResponseEntity.status(HttpStatus.OK).body("Deleted sucefully");
-	}
-	
-	@PutMapping(value = "/putachado/{id}")
-    public ResponseEntity<Object> putAchado(@RequestBody @Valid AchadoRecord achadodto, @PathVariable("id") int id) {
-        Optional<AchadoModel> achadoModelOptional = achadoservice.findById(id);
-   
-        if (!achadoModelOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("achado not found.");
+    @PostMapping(value = "/newachado/{id}")
+    public ResponseEntity<Object> saveAchado(@RequestBody @Valid AchadoRecord achadoDto, @PathVariable("id") int id) {
+        Optional<UsuarioModel> usuarioModel = usuarioService.findById(id);
+        if (usuarioModel.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario not found.");
         }
-   
+        
+        var achadoModel = new AchadoModel();
+        BeanUtils.copyProperties(achadoDto, achadoModel);
+        achadoModel.setUsuario(usuarioModel.get());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(achadoService.save(achadoModel));
+    }
+
+    @GetMapping(value = "/achado")
+    public ResponseEntity<List<AchadoModel>> getAchado() {
+        List<AchadoModel> achado = achadoService.findAll();
+
+        if (achado.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(achado);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(achado);
+    }
+
+    @GetMapping(value = "/achado/{id}")
+    public ResponseEntity<Object> getAchadoDetails(@PathVariable("id") int id) {
+        Optional<AchadoModel> achado = achadoService.findById(id);
+
+        if (!achado.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Achado not found.");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(achado.get());
+    }
+
+    @DeleteMapping(value = "/deleteachado/{id}")
+    public ResponseEntity<Object> deleteAchado(@PathVariable("id") int id) {
+        Optional<AchadoModel> achadoModelOptional = achadoService.findById(id);
+
+        if (!achadoModelOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Achado not found.");
+        }
+        achadoService.delete(achadoModelOptional.get());
+        return ResponseEntity.status(HttpStatus.OK).body("Deleted successfully");
+    }
+
+    @PutMapping(value = "/putachado/{id}")
+    public ResponseEntity<Object> putAchado(@RequestBody @Valid AchadoRecord achadoDto, @PathVariable("id") int id) {
+        Optional<AchadoModel> achadoModelOptional = achadoService.findById(id);
+
+        if (!achadoModelOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Achado not found.");
+        }
+
         AchadoModel achadoModel = achadoModelOptional.get();
-        BeanUtils.copyProperties(achadodto, achadoModel, "id", "usuario");  // Preserve o ID e o usuário
-   
-        AchadoModel updatedAchado = achadoservice.save(achadoModel);
-   
+        BeanUtils.copyProperties(achadoDto, achadoModel, "id", "usuario");
+
+        AchadoModel updatedAchado = achadoService.save(achadoModel);
+
         return ResponseEntity.status(HttpStatus.OK).body(updatedAchado);
-    }  
-	@GetMapping(value = "/achadolist")
-	public ResponseEntity<List<AchadoModel>> getAchadoList(){
-		List<AchadoModel> achado = achadoservice.getListAchado();
-		
-		if (achado.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(achado);
-			
-		}
-			return ResponseEntity.status(HttpStatus.OK).body(achado);
-	}
-	@GetMapping(value = "/achadolistuser/{id}")
-	public ResponseEntity<List<AchadoModel>> getAchadoUser(@PathVariable("id") int id){
-		List<AchadoModel> achado = achadoservice.getAchadoUser(id);
-		
-		if (achado.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(achado);
-			
-		}
-			return ResponseEntity.status(HttpStatus.OK).body(achado);
-	}
+    }
+
+    @GetMapping(value = "/achadolist")
+    public ResponseEntity<List<AchadoModel>> getAchadoList() {
+        List<AchadoModel> achado = achadoService.getListAchado();
+
+        if (achado.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(achado);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(achado);
+    }
+
+    @GetMapping(value = "/achadolistuser/{id}")
+    public ResponseEntity<List<AchadoModel>> getAchadoUser(@PathVariable("id") int id) {
+        List<AchadoModel> achado = achadoService.getAchadoUser(id);
+
+        if (achado.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(achado);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(achado);
+    }
 }

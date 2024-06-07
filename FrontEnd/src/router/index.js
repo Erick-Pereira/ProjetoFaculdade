@@ -6,6 +6,7 @@ import Occurrence from '../views/Occurrence.vue';
 import LostFound from '../views/LostFound.vue';
 import Meeting from '../views/Meeting.vue';
 import Reserve from '../views/Reserve.vue';
+import CalendarReserve from '../views/CalendarReserve.vue';
 
 const routes = [
   {
@@ -37,6 +38,11 @@ const routes = [
     path: '/reserve',
     name: 'Reserve',
     component: Reserve
+  },
+  {
+    path: '/calendar',
+    name: 'CalendarReserve',
+    component: CalendarReserve
   }
 ];
 

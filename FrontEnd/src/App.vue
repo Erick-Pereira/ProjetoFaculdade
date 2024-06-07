@@ -24,7 +24,7 @@
                   </router-link>
                 </li>
                 <li class="nav-link">
-                  <router-link :to="{ name: 'Reserve' }">
+                  <router-link :to="{ name: 'CalendarReserve' }">
                     <i class="bx bx-calendar icon"></i>
                     <span class="text nav-text">Reservas</span>
                   </router-link>

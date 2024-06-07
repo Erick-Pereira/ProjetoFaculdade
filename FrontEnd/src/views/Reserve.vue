@@ -163,7 +163,7 @@ export default {
     }
   },
   mounted() {
-    axios.get('http://localhost:8080/reservauser/1')
+    axios.get('http://localhost:8080/reservausuario/1')
       .then(response => {
         this.reserves = response.data;
       })
