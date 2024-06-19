@@ -50,7 +50,7 @@
     </div>
   </div>
 </template>
- 
+
 <script>
 import axios from 'axios';
  
@@ -66,6 +66,9 @@ export default {
     };
   },
   methods: {
+    getUserId() {
+      return localStorage.getItem('userId');
+    },
     openModal(lostfound) {
       if (lostfound) {
         this.isEditing = true;
@@ -94,13 +97,13 @@ export default {
         alert('Por favor, preencha todos os campos.');
         return;
       }
-
+ 
       const lostfoundData = {
         tituloAchado: this.tituloAchado,
         descricaoAchado: this.descricaoAchado,
         data: this.data,
       };
-
+ 
       if (this.isEditing) {
         this.updateItem(lostfoundData);
       } else {
@@ -108,7 +111,15 @@ export default {
       }
     },
     createItem(lostfoundData) {
-      axios.post('http://localhost:8080/newachado/1', lostfoundData)
+      const userId = this.getUserId();
+      console.log('Recuperado ID do usuário:', userId);  // Verifica a recuperação
+      
+      if (!userId) {
+        console.error('Usuário não está autenticado.');
+        return;
+      }
+      
+      axios.post(`http://localhost:8080/newachado/${userId}`, lostfoundData)
         .then(response => {
           console.log(response.data);
           this.lostfounds.push(response.data);
@@ -120,19 +131,19 @@ export default {
         });
     },
     updateItem(lostfoundData) {
-        axios.put(`http://localhost:8080/putachado/${this.editId}`, lostfoundData)
-            .then(response => {
-                console.log('Atualizado com sucesso:', response.data);
-                const index = this.lostfounds.findIndex(item => item.id === this.editId);
-                if (index !== -1) {
-                    this.lostfounds.splice(index, 1, response.data);
-                }
-                this.resetForm();
-                this.closeModal();
-            })
-            .catch(error => {
-                console.error('Erro ao atualizar:', error);
-            });
+      axios.put(`http://localhost:8080/putachado/${this.editId}`, lostfoundData)
+        .then(response => {
+          console.log('Atualizado com sucesso:', response.data);
+          const index = this.lostfounds.findIndex(item => item.id === this.editId);
+          if (index !== -1) {
+            this.lostfounds.splice(index, 1, response.data);
+          }
+          this.resetForm();
+          this.closeModal();
+        })
+        .catch(error => {
+          console.error('Erro ao atualizar:', error);
+        });
     },
     deleteItem(id) {
       const confirmDelete = confirm('Tem certeza que deseja excluir?');
@@ -159,7 +170,14 @@ export default {
     }
   },
   mounted() {
-    axios.get('http://localhost:8080/achadolistuser/1')
+    const userId = this.getUserId();
+   
+    if (!userId) {
+      console.error('Usuário não está autenticado.');
+      return;
+    }
+ 
+    axios.get(`http://localhost:8080/achadolistuser/${userId}`)
       .then(response => {
         this.lostfounds = response.data;
       })
@@ -191,7 +209,7 @@ export default {
 
 .title {
   text-align: left;
-  margin-bottom: 20px;
+  margin-top: 13px;
   margin-left: 120px;
   position: fixed;
   top: 0;

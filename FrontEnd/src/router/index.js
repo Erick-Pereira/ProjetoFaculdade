@@ -11,13 +11,13 @@ import CalendarReserve from '../views/CalendarReserve.vue';
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
-  },
-  {
-    path: '/login',
     name: 'LogInSignUp',
     component: LogInSignUp
+  },
+  {
+    path: '/home',
+    name: 'Home',
+    component: Home
   },
   {
     path: '/occurrence',

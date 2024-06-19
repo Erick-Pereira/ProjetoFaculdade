@@ -66,6 +66,9 @@ export default {
     };
   },
   methods: {
+    getUserId() {
+      return localStorage.getItem('userId');
+    },
     openModal(occurrence) {
       if (occurrence) {
         this.isEditing = true;
@@ -108,7 +111,15 @@ export default {
       }
     },
     createItem(occurrenceData) {
-      axios.post('http://localhost:8080/newcomunicado/1', occurrenceData)
+      const userId = this.getUserId();
+      console.log('Recuperado ID do usuário:', userId);  // Verifica a recuperação
+      
+      if (!userId) {
+        console.error('Usuário não está autenticado.');
+        return;
+      }
+
+      axios.post(`http://localhost:8080/newcomunicado/${userId}`, occurrenceData)
         .then(response => {
           console.log(response.data);
           this.occurrences.push(response.data);
@@ -159,7 +170,14 @@ export default {
     }
   },
   mounted() {
-    axios.get('http://localhost:8080/comunicadouser/1')
+    const userId = this.getUserId();
+   
+    if (!userId) {
+      console.error('Usuário não está autenticado.');
+      return;
+    }
+    
+    axios.get(`http://localhost:8080/comunicadouser/${userId}`)
       .then(response => {
         this.occurrences = response.data;
       })
@@ -191,7 +209,7 @@ export default {
 
 .title {
   text-align: left;
-  margin-bottom: 20px;
+  margin-top: 13px;
   margin-left: 120px;
   position: fixed;
   top: 0;

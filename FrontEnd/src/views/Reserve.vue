@@ -70,6 +70,9 @@ export default {
     };
   },
   methods: {
+    getUserId() {
+      return localStorage.getItem('userId');
+    },
     openModal(reserve) {
       if (reserve) {
         this.isEditing = true;
@@ -112,7 +115,15 @@ export default {
       }
     },
     createItem(reserveData) {
-      axios.post('http://localhost:8080/newreserva/1', reserveData)
+      const userId = this.getUserId();
+      console.log('Recuperado ID do usuário:', userId);  // Verifica a recuperação
+      
+      if (!userId) {
+        console.error('Usuário não está autenticado.');
+        return;
+      }
+    
+      axios.post(`http://localhost:8080/newreserva/${userId}`, reserveData)
         .then(response => {
           console.log(response.data);
           this.reserves.push(response.data);
@@ -163,7 +174,14 @@ export default {
     }
   },
   mounted() {
-    axios.get('http://localhost:8080/reservausuario/1')
+    const userId = this.getUserId();
+   
+    if (!userId) {
+      console.error('Usuário não está autenticado.');
+      return;
+    }
+    
+    axios.get(`http://localhost:8080/reservausuario/${userId}`)
       .then(response => {
         this.reserves = response.data;
       })
@@ -195,7 +213,7 @@ export default {
 
 .title {
   text-align: left;
-  margin-bottom: 20px;
+  margin-top: 13px;
   margin-left: 120px;
   position: fixed;
   top: 0;

@@ -71,6 +71,9 @@ export default {
     };
   },
   methods: {
+    getUserId() {
+      return localStorage.getItem('userId');
+    },
     openModal(meeting) {
       if (meeting) {
         this.isEditing = true;
@@ -120,7 +123,15 @@ export default {
       }
     },
     createItem(meetingData) {
-      axios.post('http://localhost:8080/newassembleia/1', meetingData)
+      const userId = this.getUserId();
+      console.log('Recuperado ID do usuário:', userId);  // Verifica a recuperação
+      
+      if (!userId) {
+        console.error('Usuário não está autenticado.');
+        return;
+      }
+
+      axios.post(`http://localhost:8080/newassembleia/${userId}`, meetingData)
         .then(response => {
           console.log(response.data);
           this.meetings.push(response.data);
@@ -172,7 +183,14 @@ export default {
     }
   },
   mounted() {
-    axios.get('http://localhost:8080/assembleialistuser/1')
+    const userId = this.getUserId();
+   
+    if (!userId) {
+      console.error('Usuário não está autenticado.');
+      return;
+    }
+  
+    axios.get(`http://localhost:8080/assembleialistuser/${userId}`)
       .then(response => {
         this.meetings = response.data;
       })
@@ -204,7 +222,7 @@ export default {
 
 .title {
   text-align: left;
-  margin-bottom: 20px;
+  margin-top: 13px;
   margin-left: 120px;
   position: fixed;
   top: 0;

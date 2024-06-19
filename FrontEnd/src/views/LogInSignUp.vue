@@ -1,8 +1,8 @@
 <template>
   <div class="login-signup-container">
-    <section class="wrapper">
+    <section class="wrapper" :class="{ active: isLogin }">
       <div class="form signup">
-        <header>Cadastrar-se</header>
+        <header @click="toggleForms">Cadastrar-se</header>
         <form @submit.prevent="signUpUser">
           <input type="text" placeholder="Nome completo" required name="signupName" ref="signupName" autocomplete="name"/>
           <input type="text" placeholder="Complemento" required name="signupFlat" ref="signupFlat" autocomplete="address-level2"/>
@@ -16,7 +16,7 @@
         </form>
       </div>
       <div class="form login">
-        <header>Login</header>
+        <header @click="toggleForms">Login</header>
         <form @submit.prevent="loginUser">
           <input type="email" placeholder="E-mail" required name="emailUsuario" ref="emailUsuario" autocomplete="emailUsuario"/>
           <input type="password" placeholder="Senha" required name="senhaUsuario" ref="senhaUsuario" autocomplete="current-senhaUsuario"/>
@@ -26,36 +26,34 @@
     </section>
   </div>
 </template>
- 
+
 <script>
 export default {
   name: 'LogInSignUp',
-  mounted() {
-    const wrapper = document.querySelector(".wrapper");
-    const signupHeader = document.querySelector(".signup header");
-    const loginHeader = document.querySelector(".login header");
- 
-    loginHeader.addEventListener("click", () => {
-      wrapper.classList.add("active");
-    });
-    signupHeader.addEventListener("click", () => {
-      wrapper.classList.remove("active");
-    });
+  data() {
+    return {
+      isLogin: false
+    };
   },
   methods: {
+    toggleForms() {
+      this.isLogin = !this.isLogin;
+    },
     async loginUser() {
       try {
         const emailUsuario = this.$refs.emailUsuario.value;
         const senhaUsuario = this.$refs.senhaUsuario.value;
         const response = await fetch(`http://localhost:8080/validacadastro/${emailUsuario}/${senhaUsuario}`);
-        const data = await response.json();
+        const userId = await response.json();
         if (response.ok) {
-          console.log('Login bem-sucedido, ID do usuário:', data);
+          alert('Login bem-sucedido');
+          localStorage.setItem('userId', userId);
           this.$router.push({ name: 'Home' });
         } else {
-          console.error('Login falhou:', data);
+          alert('O e-mail e senha informado está incorreto');
         }
       } catch (error) {
+        alert('Erro ao tentar se logar');
         console.error('Erro ao tentar fazer login:', error);
       }
     },
@@ -73,19 +71,28 @@ export default {
           body: JSON.stringify({ nomeUsuario, apartamentoUsuario, emailUsuario, senhaUsuario })
         });
         if (response.ok) {
-          console.log('Cadastro bem-sucedido');
-          this.$router.push({ name: 'Home' });
+          alert('Cadastro bem-sucedido');
+          this.clearSignUpForm();
+          this.isLogin = true; 
         } else {
-          console.error('Falha no cadastro:', response.statusText);
+          alert('Falha no cadastro');
         }
       } catch (error) {
+        alert('Erro ao tentar cadastrar');
         console.error('Erro ao tentar cadastrar:', error);
       }
+    },
+    clearSignUpForm() {
+      this.$refs.signupName.value = '';
+      this.$refs.signupFlat.value = '';
+      this.$refs.signupemailUsuario.value = '';
+      this.$refs.signupsenhaUsuario.value = '';
+      document.getElementById('signupCheck').checked = false;
     }
   }
 }
 </script>
- 
+
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
  
