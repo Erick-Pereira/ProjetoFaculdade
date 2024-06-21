@@ -95,7 +95,7 @@ public class ReservaController {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("reserva not found.");
 		}
 		var reservaModel = new ReservaModel();
-		BeanUtils.copyProperties(reservadto, reservaModel);
+		BeanUtils.copyProperties(reservaModel, reservadto, "id", "usuario");
 		reservaModel.setId(blogappModelOptional.get().getId());
 		return ResponseEntity.status(HttpStatus.CREATED).body(reservaservice.save(reservaModel));
 	}

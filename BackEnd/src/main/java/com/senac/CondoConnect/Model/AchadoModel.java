@@ -1,5 +1,8 @@
 package com.senac.CondoConnect.Model;
 
+import java.time.LocalDate;
+import java.util.Date;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -7,27 +10,22 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
 
-@Entity
-@Table(name="Achado")
+    @Entity
+    @Table(name="Achado")
 public class AchadoModel {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
-
-    @Column(nullable= false)
-    private String descricaoAchado;
-
-    @Column(nullable= false)
-    private String tituloAchado;
-
-    @Column(nullable= false)
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private int id;
+	@Column(nullable= false)
+	private String descricaoAchado;
+	@Column(nullable= false)
+	private String tituloAchado;
+    @Column(nullable = false)
     private LocalDate data;
-
-    @ManyToOne
-    private UsuarioModel usuario;
+	@ManyToOne
+	private UsuarioModel usuario;
 
     public int getId() {
         return id;
@@ -53,14 +51,6 @@ public class AchadoModel {
         this.tituloAchado = tituloAchado;
     }
 
-    public LocalDate getData() {
-        return data;
-    }
-
-    public void setData(LocalDate data) {
-        this.data = data;
-    }
-
     public UsuarioModel getUsuario() {
         return usuario;
     }
@@ -68,4 +58,15 @@ public class AchadoModel {
     public void setUsuario(UsuarioModel usuario) {
         this.usuario = usuario;
     }
-}
+
+    public LocalDate  getData() {
+        return data;
+    }
+
+    public void setData(LocalDate data) {
+        this.data = data;
+    }
+
+
+	}
+
