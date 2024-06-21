@@ -11,9 +11,9 @@ import com.senac.CondoConnect.Model.UsuarioModel;
 
 public interface UsuarioRepository extends JpaRepository<UsuarioModel, UUID>{
 	
-	@Query(nativeQuery = true, value = "Select * from moradores where email_usuario = :Email")
+	@Query(nativeQuery = true, value = "Select * from usuario where username = :Email")
     Optional<UsuarioModel> findByEmail (String Email);
 	
-	@Query(nativeQuery = true, value = "Select * from moradores where id = :id_user")
+	@Query(nativeQuery = true, value = "Select * from usuario where id = :id_user")
     Optional<UsuarioModel> findById (int id_user);
 }
