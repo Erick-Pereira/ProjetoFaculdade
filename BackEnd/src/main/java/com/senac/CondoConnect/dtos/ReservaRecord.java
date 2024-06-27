@@ -1,8 +1,12 @@
 package com.senac.CondoConnect.dtos;
 
 import java.time.LocalDate;
-import java.util.Date;
+import com.senac.CondoConnect.Model.UsuarioModel;
+import jakarta.validation.constraints.NotBlank;
 
-public record ReservaRecord(String comentario, LocalDate data, UsuarioRecord usuario, String espaco) {
-
-}
+public record ReservaRecord(
+    @NotBlank String comentario, 
+    LocalDate data, 
+    @NotBlank String espaco,
+    UsuarioModel usuario
+) {}

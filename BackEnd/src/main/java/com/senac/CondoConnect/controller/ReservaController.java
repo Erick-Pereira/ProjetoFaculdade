@@ -28,86 +28,111 @@ import jakarta.validation.Valid;
 @CrossOrigin(origins = "*")
 public class ReservaController {
 
-	@Autowired
-	ReservaService reservaservice; 
-	@Autowired
-	UsuarioService usuarioservice; 
-	
-	@PostMapping(value ="/newreserva/{iduser}") //retorna 201
-	public ResponseEntity<Object> saveReserva(@RequestBody @Valid ReservaRecord reservadto, @PathVariable("iduser") int iduser) {
-		
-		Optional<UsuarioModel> usuariomodel = usuarioservice.findById(iduser);
-		var reservamodel = new ReservaModel();
-		BeanUtils.copyProperties(reservadto, reservamodel);
-		reservamodel.setUsuario(usuariomodel.get());
-		return ResponseEntity.status(HttpStatus.CREATED).body(reservaservice.save(reservamodel));
-	}
-	
-	@GetMapping(value = "/reserva")
-	public ResponseEntity<List<ReservaModel>> getPosts(){
-		List<ReservaModel> reserva = reservaservice.findAll();
-		
-		if (reserva.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(reserva);
-			
-		}
-			return ResponseEntity.status(HttpStatus.OK).body(reserva);
-	}
-	
-	@GetMapping(value = "/reservausuario/{id}")
-	public ResponseEntity<List<ReservaModel>> getRecervasUser(@PathVariable("id") int id){
-		List<ReservaModel> reserva = reservaservice.findByUser(id);
-		
-		if (reserva.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(reserva);
-			
-		}
-		
-			return ResponseEntity.status(HttpStatus.OK).body(reserva);
-	}
-	
-	@GetMapping(value ="/reserva/{id}")
-	public ResponseEntity<Object> getReservaDetails(@PathVariable("id") int id) {
-		Optional<ReservaModel> reserva = reservaservice.findById(id);
-		
-		if(!reserva.isPresent()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("reserva not found.");
-		}
-		return ResponseEntity.status(HttpStatus.OK).body(reserva.get());
-	}
-	
-	@DeleteMapping(value = "/deletereserva/{id}")
-	public ResponseEntity<Object> deleteReserva(@PathVariable("id") int id ){
-		Optional<ReservaModel> blogappModelOptional = reservaservice.findById(id);
-		
-		if(!blogappModelOptional.isPresent()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("reserva not found.");
-		}
-		reservaservice.delete(blogappModelOptional.get());
-		return ResponseEntity.status(HttpStatus.OK).body("Deleted sucefully");
-	}
-	
-	@PutMapping(value ="/putreserva/{id}")
-	public ResponseEntity<Object> putReserva(@RequestBody @Valid ReservaRecord reservadto,@PathVariable("id") int id){
-		Optional<ReservaModel> blogappModelOptional = reservaservice.findById(id);
+    @Autowired
+    ReservaService reservaservice; 
+    @Autowired
+    UsuarioService usuarioservice; 
 
-		if(!blogappModelOptional.isPresent()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("reserva not found.");
-		}
-		var reservaModel = new ReservaModel();
-		BeanUtils.copyProperties(reservaModel, reservadto, "id", "usuario");
-		reservaModel.setId(blogappModelOptional.get().getId());
-		return ResponseEntity.status(HttpStatus.CREATED).body(reservaservice.save(reservaModel));
-	}
-	@GetMapping(value = "/reservames/{mes}")
-	public ResponseEntity<List<ReservaModel>> getRecervasmes(@PathVariable("mes") int mes){
-		List<ReservaModel> reserva = reservaservice.findByMes(mes);
+    @PostMapping(value = "/newreserva/{iduser}")
+    public ResponseEntity<Object> saveReserva(@RequestBody @Valid ReservaRecord reservadto, @PathVariable("iduser") int iduser) {
+    
+        Optional<UsuarioModel> usuariomodel = usuarioservice.findById(iduser);
+        if (usuariomodel.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
+        }
+    
+        List<ReservaModel> reservasDoDia = reservaservice.fingByData(reservadto.data());
+        boolean isEspacoAReserved = reservasDoDia.stream().anyMatch(reserva -> reserva.getEspaco().equalsIgnoreCase("Salão A"));
+        boolean isEspacoBReserved = reservasDoDia.stream().anyMatch(reserva -> reserva.getEspaco().equalsIgnoreCase("Salão B"));
+    
+        if (isEspacoAReserved && isEspacoBReserved) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Ambos os salões já estão reservados no mesmo dia, tente outra data.");
+        }
+    
+        if ((reservadto.espaco().equalsIgnoreCase("Salão A") && isEspacoAReserved) ||
+            (reservadto.espaco().equalsIgnoreCase("Salão B") && isEspacoBReserved)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Esse espaço já está reservado, tente outro salão.");
+        }
+    
+        var reservamodel = new ReservaModel();
+        BeanUtils.copyProperties(reservadto, reservamodel);
+        reservamodel.setUsuario(usuariomodel.get());
+    
+        return ResponseEntity.status(HttpStatus.CREATED).body(reservaservice.save(reservamodel));
+    }    
+
+    @GetMapping(value = "/reserva")
+    public ResponseEntity<List<ReservaModel>> getPosts() {
+        List<ReservaModel> reserva = reservaservice.findAll();
+        
+        if (reserva.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(reserva);
+        }
+        
+        return ResponseEntity.status(HttpStatus.OK).body(reserva);
+    }
+
+    @GetMapping(value = "/reservausuario/{id}")
+    public ResponseEntity<List<ReservaModel>> getRecervasUser(@PathVariable("id") int id) {
+        List<ReservaModel> reserva = reservaservice.findByUser(id);
+        
+        if (reserva.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(reserva);
+        }
+        
+        return ResponseEntity.status(HttpStatus.OK).body(reserva);
+    }
+
+    @GetMapping(value = "/reserva/{id}")
+    public ResponseEntity<Object> getReservaDetails(@PathVariable("id") int id) {
+        Optional<ReservaModel> reserva = reservaservice.findById(id);
+        
+        if (!reserva.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("reserva not found.");
+        }
+        
+        return ResponseEntity.status(HttpStatus.OK).body(reserva.get());
+    }
+
+    @DeleteMapping(value = "/deletereserva/{id}")
+    public ResponseEntity<Object> deleteReserva(@PathVariable("id") int id) {
+        Optional<ReservaModel> blogappModelOptional = reservaservice.findById(id);
+        
+        if (!blogappModelOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("reserva not found.");
+        }
+        
+        reservaservice.delete(blogappModelOptional.get());
+        return ResponseEntity.status(HttpStatus.OK).body("Deleted successfully");
+    }
+
+	@PutMapping(value = "/putreserva/{id}")
+	public ResponseEntity<Object> putReserva(@RequestBody @Valid ReservaRecord reservadto, @PathVariable("id") int id) {
+		Optional<ReservaModel> reservaOptional = reservaservice.findById(id);
 		
-		if (reserva.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(reserva);
-			
+		if (!reservaOptional.isPresent()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Reserva not found.");
 		}
 		
-			return ResponseEntity.status(HttpStatus.OK).body(reserva);
-	}
+		ReservaModel reservaExistente = reservaOptional.get();
+		
+		// Copiar propriedades de reservadto para reservaExistente, excluindo "id" e "usuario"
+		BeanUtils.copyProperties(reservadto, reservaExistente, "id", "usuario");
+		
+		// Salvar a reserva atualizada
+		ReservaModel reservaAtualizada = reservaservice.save(reservaExistente);
+		
+		return ResponseEntity.status(HttpStatus.CREATED).body(reservaAtualizada);
+	}	
+
+    @GetMapping(value = "/reservames/{mes}")
+    public ResponseEntity<List<ReservaModel>> getRecervasmes(@PathVariable("mes") int mes) {
+        List<ReservaModel> reserva = reservaservice.findByMes(mes);
+        
+        if (reserva.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(reserva);
+        }
+        
+        return ResponseEntity.status(HttpStatus.OK).body(reserva);
+    }
 }

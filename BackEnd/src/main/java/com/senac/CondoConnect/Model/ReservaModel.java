@@ -53,12 +53,11 @@ public class ReservaModel {
 	public void setEspaco(String espaco) {
 		this.espaco = espaco;
 	}
-	public LocalDate getData() {
-		return data;
-	}
-	public void setData(LocalDate dataInicio) {
-		this.data = dataInicio;
-	}
-
+    public LocalDate getData() {
+        return data;
+    }
+    public void setData(LocalDate data) {
+        this.data = data;
+    }
 	
 }

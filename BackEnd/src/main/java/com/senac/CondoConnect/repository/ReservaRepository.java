@@ -1,5 +1,6 @@
 package com.senac.CondoConnect.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,6 +17,9 @@ public interface ReservaRepository extends JpaRepository<ReservaModel, UUID>{
 	
 	@Query(nativeQuery = true, value = "select * from reserva where id = :id_re")
 	Optional<ReservaModel> findById(int id_re);
+
+	@Query(nativeQuery = true, value = "select * from reserva where data = :id_re")
+	List<ReservaModel> findByData(LocalDate id_re);
 
 	@Query(nativeQuery = true, value = "select * from reserva where month(data) = :mes")
 	List<ReservaModel> findByMes(int mes);

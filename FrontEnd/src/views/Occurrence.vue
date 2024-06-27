@@ -6,6 +6,7 @@
     </div>
 
     <div class="container">
+      <div :class="['alert', alertClass]" v-if="notificationMessage">{{ notificationMessage }}</div>
       <div class="header">
         <i class="bx bx-bell icon"><span>Ocorrências</span></i>
         <button @click="openModal(null)" id="new">Criar Ocorrências</button>
@@ -42,7 +43,7 @@
             <label for="m-description">Descrição</label>
             <input id="m-description" v-model="descricaoComunicado" type="text" required/>
             <label for="m-date">Data</label>
-            <input id="m-date" v-model="data" type="date" required/>
+            <input id="m-date" v-model="data" type="date" :min="today" required/>
             <button @click.prevent="saveItem">{{ isEditing ? 'Atualizar' : 'Salvar' }}</button>
           </form>
         </div>
@@ -62,10 +63,21 @@ export default {
       descricaoComunicado: '',
       data: '',
       isEditing: false,
-      editId: null
+      editId: null,
+      today: new Date().toISOString().split('T')[0], // Obter data atual no formato YYYY-MM-DD
+      notificationMessage: '',
+      alertClass: '',
     };
   },
   methods: {
+    setNotification(message, type) {
+      this.notificationMessage = message;
+      this.alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+      setTimeout(() => {
+        this.notificationMessage = '';
+        this.alertClass = '';
+      }, 2000); 
+    },
     getUserId() {
       return localStorage.getItem('userId');
     },
@@ -94,7 +106,14 @@ export default {
     },
     saveItem() {
       if (!this.tituloComunicado || !this.descricaoComunicado || !this.data) {
-        alert('Por favor, preencha todos os campos.');
+        this.setNotification('Por favor, preencha todos os campos.', 'danger');
+        return;
+      }
+
+      // Verificar se a data é anterior ao dia atual
+      const today = new Date().toISOString().split('T')[0];
+      if (this.data < today) {
+        this.setNotification('A data da ocorrência não pode ser anterior ao dia de hoje.', 'danger');
         return;
       }
 
@@ -125,12 +144,19 @@ export default {
           this.occurrences.push(response.data);
           this.resetForm();
           this.closeModal();
+          this.setNotification('Cadastrado com sucesso', 'success');
         })
         .catch(error => {
           console.error('Erro ao enviar dados:', error);
         });
     },
     updateItem(occurrenceData) {
+      const today = new Date().toISOString().split('T')[0];
+      if (occurrenceData.data < today) {
+        this.setNotification('A data da ocorrência não pode ser anterior ao dia de hoje.', 'danger');
+        return;
+      }
+
       axios.put(`http://localhost:8080/putcomunicado/${this.editId}`, occurrenceData)
         .then(response => {
           console.log('Atualizado com sucesso:', response.data);
@@ -140,6 +166,7 @@ export default {
           }
           this.resetForm();
           this.closeModal();
+          this.setNotification('Atualizado com sucesso', 'success');
         })
         .catch(error => {
           console.error('Erro ao atualizar:', error);
@@ -152,6 +179,7 @@ export default {
           .then(response => {
             console.log('Excluído com sucesso:', response.data);
             this.occurrences = this.occurrences.filter(occurrence => occurrence.id !== id);
+            this.setNotification('Excluido com sucesso', 'success');
           })
           .catch(error => {
             console.error('Erro ao excluir:', error);
@@ -433,5 +461,27 @@ td button i {
 
 td button i:first-child {
   margin-right: 10px;
+}
+
+.alert {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  z-index: 1000;
+  display: inline-block;
+}
+
+.alert-success {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.alert-danger {
+  background-color: #f44336;
+  color: white;
 }
 </style>

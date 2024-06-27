@@ -1,5 +1,6 @@
 package com.senac.CondoConnect.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,5 +31,8 @@ public class ReservaService {
 	    }
 	    public List<ReservaModel> findByMes(int mes){ // vai retornar uma lista de Posts
 	        return reservaRepository.findByMes(mes);
+	    }
+		public List<ReservaModel> fingByData(LocalDate post){ // vai salvar um Post no Banco
+	        return reservaRepository.findByData(post);
 	    }
 }

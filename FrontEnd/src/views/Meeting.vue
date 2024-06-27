@@ -1,11 +1,12 @@
 <template>
   <div>
-      <div class="title">
-        <h4>Reuniões</h4>
-        <h6>Condomínio >> Reunião >> Alterar</h6>
-      </div>
+    <div class="title">
+      <h4>Reuniões</h4>
+      <h6>Condomínio >> Reunião >> Alterar</h6>
+    </div>
  
     <div class="container">
+      <div :class="['alert', alertClass]" v-if="notificationMessage">{{ notificationMessage }}</div>
       <div class="header">
         <i class="bx bx-user-voice icon"><span>Reuniões</span></i>
         <button @click="openModal(null)" id="new">Criar Reunião</button>
@@ -44,7 +45,7 @@
             <label for="m-description">Descrição</label>
             <input id="m-description" v-model="descricao" type="text" required/>
             <label for="m-date">Data</label>
-            <input id="m-date" v-model="data" type="date" required/>
+            <input id="m-date" v-model="data" type="date" :min="today" required/>
             <label for="m-hour">Hora</label>
             <input id="m-hour" v-model="hora" type="time" required/>
             <button @click.prevent="saveItem">{{ isEditing ? 'Atualizar' : 'Salvar' }}</button>
@@ -67,12 +68,23 @@ export default {
       data: '',
       hora: '',
       isEditing: false,
-      editId: null
+      editId: null,
+      today: new Date().toISOString().split('T')[0],
+      notificationMessage: '',
+      alertClass: '',
     };
   },
   methods: {
     getUserId() {
       return localStorage.getItem('userId');
+    },
+    setNotification(message, type) {
+      this.notificationMessage = message;
+      this.alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+      setTimeout(() => {
+        this.notificationMessage = '';
+        this.alertClass = '';
+      }, 3000); // Define o tempo de exibição do alerta (3 segundos)
     },
     openModal(meeting) {
       if (meeting) {
@@ -100,13 +112,20 @@ export default {
     },
     saveItem() {
       if (!this.titulo || !this.descricao || !this.data || !this.hora) {
-        alert('Por favor, preencha todos os campos.');
+        this.setNotification('Por favor, preencha todos os campos.', 'danger');
+        return;
+      }
+
+      // Verificar se a data é anterior ao dia atual
+      const today = new Date().toISOString().split('T')[0];
+      if (this.data < today) {
+        this.setNotification('A data da reunião não pode ser anterior ao dia de hoje.', 'danger');
         return;
       }
 
       let formataHora = this.hora;
-      if(!this.hora.includes(+':00')) {
-        formataHora = this.hora + ':00'
+      if (!this.hora.includes(':00')) {
+        formataHora = this.hora + ':00';
       }
 
       const meetingData = {
@@ -124,8 +143,6 @@ export default {
     },
     createItem(meetingData) {
       const userId = this.getUserId();
-      console.log('Recuperado ID do usuário:', userId);  // Verifica a recuperação
-      
       if (!userId) {
         console.error('Usuário não está autenticado.');
         return;
@@ -137,25 +154,35 @@ export default {
           this.meetings.push(response.data);
           this.resetForm();
           this.closeModal();
+          this.setNotification('Reunião criada com sucesso!', 'success');
         })
         .catch(error => {
           console.error('Erro ao enviar dados:', error);
+          this.setNotification('Erro ao criar reunião. Tente novamente.', 'danger');
         });
     },
     updateItem(meetingData) {
-        axios.put(`http://localhost:8080/putassembleia/${this.editId}`, meetingData)
-            .then(response => {
-                console.log('Reunião atualizada com sucesso:', response.data);
-                const index = this.meetings.findIndex(item => item.id === this.editId);
-                if (index !== -1) {
-                    this.meetings.splice(index, 1, response.data);
-                }
-                this.resetForm();
-                this.closeModal();
-            })
-            .catch(error => {
-                console.error('Erro ao atualizar:', error);
-            });
+      const today = new Date().toISOString().split('T')[0];
+      if (meetingData.data < today) {
+        this.setNotification('A data da reunião não pode ser anterior ao dia de hoje.', 'danger');
+        return;
+      }
+
+      axios.put(`http://localhost:8080/putassembleia/${this.editId}`, meetingData)
+        .then(response => {
+          console.log('Reunião atualizada com sucesso:', response.data);
+          const index = this.meetings.findIndex(item => item.id === this.editId);
+          if (index !== -1) {
+            this.meetings.splice(index, 1, response.data);
+          }
+          this.resetForm();
+          this.closeModal();
+          this.setNotification('Reunião atualizada com sucesso!', 'success');
+        })
+        .catch(error => {
+          console.error('Erro ao atualizar:', error);
+          this.setNotification('Erro ao atualizar reunião. Tente novamente.', 'danger');
+        });
     },
     deleteItem(id) {
       const confirmDelete = confirm('Tem certeza que deseja excluir?');
@@ -164,9 +191,11 @@ export default {
           .then(response => {
             console.log('Reunião excluída com sucesso:', response.data);
             this.meetings = this.meetings.filter(meeting => meeting.id !== id);
+            this.setNotification('Reunião excluída com sucesso!', 'success');
           })
           .catch(error => {
             console.error('Erro ao excluir:', error);
+            this.setNotification('Erro ao excluir reunião. Tente novamente.', 'danger');
           });
       }
     },
@@ -184,7 +213,6 @@ export default {
   },
   mounted() {
     const userId = this.getUserId();
-   
     if (!userId) {
       console.error('Usuário não está autenticado.');
       return;
@@ -446,5 +474,27 @@ td button i {
 
 td button i:first-child {
   margin-right: 10px;
+}
+
+.alert {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  z-index: 1000;
+  display: inline-block;
+}
+
+.alert-success {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.alert-danger {
+  background-color: #f44336;
+  color: white;
 }
 </style>

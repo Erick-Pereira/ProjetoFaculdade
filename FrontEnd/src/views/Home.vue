@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="template">
     <div class="contact-info">
       <h3>Bem-vindo(a)</h3>
       <h4>Em caso de dúvidas ou melhorias, entre em contato conosco:</h4>
@@ -33,7 +33,6 @@
           </div>
           <ul v-if="panel.items.length > 0" class="notification-list">
             <li class="notification-item" v-for="(item, i) in panel.items" :key="i">
-              <button class="close-button" @click="removeNotification(panel.title, i)">X</button>
               <button class="minimize-button" @click="minimizeNotification(panel.title, i)">
                 {{ item.minimized ? '+' : '-' }}
               </button>
@@ -80,135 +79,65 @@ const fetchData = async () => {
     console.log('Achados e Perdidos:', achadosPerdidosResponse.data); // Log de depuração
     achadosPerdidos.value = achadosPerdidosResponse.data;
   } catch (error) {
-    console.error('Erro ao obter dados:', error);
-    errorMessage.value = 'Erro ao carregar dados. Por favor, tente novamente mais tarde.';
+    console.error('Erro ao buscar dados:', error);
   }
 };
 
-// Chamar fetchData quando o componente é montado
-onMounted(fetchData);
+// Lógica para minimizar notificações
+const minimizeNotification = (title, index) => {
+  switch (title) {
+    case 'Ocorrências':
+      ocorrencias.value[index].minimized = !ocorrencias.value[index].minimized;
+      break;
+    case 'Reuniões':
+      reunioes.value[index].minimized = !reunioes.value[index].minimized;
+      break;
+    case 'Achados e Perdidos':
+      achadosPerdidos.value[index].minimized = !achadosPerdidos.value[index].minimized;
+      break;
+    default:
+      break;
+  }
+};
 
-// Roteamento
+// Formatando data
+const formatDate = (date, time) => {
+  const formattedDate = new Date(date);
+  let formattedString = `${formattedDate.toLocaleDateString()}`;
+  if (time) {
+    formattedString += ` ${time}`;
+  }
+  return formattedString;
+};
+
+// Navegação
 const router = useRouter();
-const goToReserve = () => router.push({ name: 'CalendarReserve' });
+const goToReserve = () => router.push({ name: 'Reserve' });
 const goToOccurrence = () => router.push({ name: 'Occurrence' });
 const goToMeeting = () => router.push({ name: 'Meeting' });
 
-// Atualizar os dados quando a rota mudar
-const route = useRoute();
-watch(route, () => {
+// Dados dinâmicos para o template
+const panels = ref([
+  { title: 'Ocorrências', items: ocorrencias.value, icon: 'fas fa-exclamation-circle' },
+  { title: 'Reuniões', items: reunioes.value, icon: 'fas fa-users' },
+  { title: 'Achados e Perdidos', items: achadosPerdidos.value, icon: 'fas fa-search' }
+]);
+
+// Atualizando dados ao montar o componente
+onMounted(() => {
   fetchData();
 });
 
-// Painéis
-const panels = ref([
-  {
-    icon: 'bx bx-user-voice icon',
-    title: 'Reuniões',
-    items: reunioes
-  },
-  {
-    icon: 'bx bx-bell icon',
-    title: 'Ocorrências',
-    items: ocorrencias
-  },
-  {
-    icon: 'bx bx-like icon',
-    title: 'Achados e perdidos',
-    items: achadosPerdidos
-  }
-]);
-
-// Atualiza os painéis dinamicamente quando os dados mudam
-watch([reunioes, ocorrencias, achadosPerdidos], () => {
-  panels.value = [
-    {
-      icon: 'bx bx-user-voice icon',
-      title: 'Reuniões',
-      items: reunioes.value
-    },
-    {
-      icon: 'bx bx-bell icon',
-      title: 'Ocorrências',
-      items: ocorrencias.value
-    },
-    {
-      icon: 'bx bx-like icon',
-      title: 'Achados e perdidos',
-      items: achadosPerdidos.value
-    }
-  ];
+// Observando mudanças nos dados
+watch(ocorrencias, () => {
+  panels.value[0].items = ocorrencias.value;
 });
-
-// Remover notificação
-const removeNotification = (panelTitle, index) => {
-  try {
-    if (panelTitle === 'Reuniões') {
-      reunioes.value.splice(index, 1);
-    } else if (panelTitle === 'Ocorrências') {
-      ocorrencias.value.splice(index, 1);
-    } else if (panelTitle === 'Achados e perdidos') {
-      achadosPerdidos.value.splice(index, 1);
-    }
-
-    // Atualiza os painéis apenas após a remoção local
-    panels.value = [
-      {
-        icon: 'bx bx-user-voice icon',
-        title: 'Reuniões',
-        items: [...reunioes.value]  // Cria uma cópia para garantir a reatividade
-      },
-      {
-        icon: 'bx bx-bell icon',
-        title: 'Ocorrências',
-        items: [...ocorrencias.value]  // Cria uma cópia para garantir a reatividade
-      },
-      {
-        icon: 'bx bx-like icon',
-        title: 'Achados e perdidos',
-        items: [...achadosPerdidos.value]  // Cria uma cópia para garantir a reatividade
-      }
-    ];
-  } catch (error) {
-    console.error('Erro ao remover notificação:', error);
-    errorMessage.value = 'Erro ao remover notificação. Por favor, tente novamente mais tarde.';
-  }
-};
-
-
-// Minimizar/maximizar notificação
-const minimizeNotification = (panelTitle, index) => {
-  const item = panels.value.find(panel => panel.title === panelTitle)?.items[index];
-  if (item) {
-    item.minimized = !item.minimized;
-  }
-};
-
-// Formatação de data e hora para reuniões
-const formatDate = (dateStr, hour) => {
-  const date = new Date(dateStr);
-  const day = date.getDate();
-  const month = date.getMonth() + 1;
-  const year = date.getFullYear();
-  const hours = date.getHours();
-  const minutes = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
-  let formattedDate = `${day}/${month}/${year}`;
-
-  if (hour && hour.includes(':')) {
-    const [hourPart, minutePart] = hour.split(':');
-    const hourNumber = parseInt(hourPart, 10);
-
-    // Determinar o sufixo de AM ou PM
-    const suffix = hourNumber >= 12 ? 'PM' : 'AM';
-
-    // Converter a hora para o formato de 12 horas
-    const formattedHour = hourNumber % 12 || 12;
-
-    formattedDate += ` às ${formattedHour}:${minutePart} ${suffix}`;
-  }
-
-  return formattedDate;
-};
+watch(reunioes, () => {
+  panels.value[1].items = reunioes.value;
+});
+watch(achadosPerdidos, () => {
+  panels.value[2].items = achadosPerdidos.value;
+});
 </script>
 
 <style scoped>

@@ -4,13 +4,14 @@
       <h4>Achados e Perdidos</h4>
       <h6>Condomínio >> Achados e Perdidos >> Alterar</h6>
     </div>
- 
+
     <div class="container">
+      <div :class="['alert', alertClass]" v-if="notificationMessage">{{ notificationMessage }}</div>
       <div class="header">
-        <i class="bx bx-like icon"><span>Achados e Perdidos</span></i>
-        <button @click="openModal(null)" id="new">Criar Achados e Perdidos</button>
+        <i class="bx bx-bell icon"><span>Achados e Perdidos</span></i>
+        <button @click="openModal(null)" id="new">Registrar Achado</button>
       </div>
- 
+
       <div class="table">
         <table>
           <thead>
@@ -23,17 +24,17 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(lostfound, index) in lostfounds" :key="index">
-              <td>{{ lostfound ? lostfound.tituloAchado : '' }}</td>
-              <td>{{ lostfound ? lostfound.descricaoAchado : '' }}</td>
-              <td>{{ lostfound ? lostfound.data : '' }}</td>
-              <td class="action"><button @click="openModal(lostfound)"><i class='bx bx-edit'></i></button></td>
-              <td class="action"><button @click="deleteItem(lostfound.id)"><i class='bx bx-trash'></i></button></td>
+            <tr v-for="(item, index) in items" :key="index">
+              <td>{{ item ? item.tituloAchado : '' }}</td>
+              <td>{{ item ? item.descricaoAchado : '' }}</td>
+              <td>{{ item ? item.data : '' }}</td>
+              <td class="action"><button @click="openModal(item)"><i class='bx bx-edit'></i></button></td>
+              <td class="action"><button @click="deleteItem(item.id)"><i class='bx bx-trash'></i></button></td>
             </tr>
           </tbody>
         </table>
       </div>
- 
+
       <div class="modal-container">
         <div class="modal">
           <form>
@@ -42,7 +43,7 @@
             <label for="m-description">Descrição</label>
             <input id="m-description" v-model="descricaoAchado" type="text" required/>
             <label for="m-date">Data</label>
-            <input id="m-date" v-model="data" type="date" required/>
+            <input id="m-date" v-model="data" type="date" :min="today" required/>
             <button @click.prevent="saveItem">{{ isEditing ? 'Atualizar' : 'Salvar' }}</button>
           </form>
         </div>
@@ -53,29 +54,40 @@
 
 <script>
 import axios from 'axios';
- 
+
 export default {
   data() {
     return {
-      lostfounds: [],
+      items: [],
       tituloAchado: '',
       descricaoAchado: '',
       data: '',
       isEditing: false,
-      editId: null
+      editId: null,
+      today: new Date().toISOString().split('T')[0], // Obter data atual no formato YYYY-MM-DD
+      notificationMessage: '',
+      alertClass: '',
     };
   },
   methods: {
+    setNotification(message, type) {
+      this.notificationMessage = message;
+      this.alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+      setTimeout(() => {
+        this.notificationMessage = '';
+        this.alertClass = '';
+      }, 2000); 
+    },
     getUserId() {
       return localStorage.getItem('userId');
     },
-    openModal(lostfound) {
-      if (lostfound) {
+    openModal(item) {
+      if (item) {
         this.isEditing = true;
-        this.tituloAchado = lostfound.tituloAchado;
-        this.descricaoAchado = lostfound.descricaoAchado;
-        this.data = lostfound.data;
-        this.editId = lostfound.id;
+        this.tituloAchado = item.tituloAchado;
+        this.descricaoAchado = item.descricaoAchado;
+        this.data = item.data.split('T')[0]; // Ajuste para remover a hora
+        this.editId = item.id;
       } else {
         this.isEditing = false;
         this.editId = null;
@@ -94,52 +106,65 @@ export default {
     },
     saveItem() {
       if (!this.tituloAchado || !this.descricaoAchado || !this.data) {
-        alert('Por favor, preencha todos os campos.');
+        this.setNotification('Por favor, preencha todos os campos.', 'danger');
         return;
       }
- 
-      const lostfoundData = {
+
+      // Verificar se a data é anterior ao dia atual
+      const today = new Date().toISOString().split('T')[0];
+      if (this.data < today) {
+        this.setNotification('A data do achado não pode ser anterior ao dia de hoje.', 'danger');
+        return;
+      }
+
+      const itemData = {
         tituloAchado: this.tituloAchado,
         descricaoAchado: this.descricaoAchado,
         data: this.data,
       };
- 
+
       if (this.isEditing) {
-        this.updateItem(lostfoundData);
+        this.updateItem(itemData);
       } else {
-        this.createItem(lostfoundData);
+        this.createItem(itemData);
       }
     },
-    createItem(lostfoundData) {
+    createItem(itemData) {
       const userId = this.getUserId();
-      console.log('Recuperado ID do usuário:', userId);  // Verifica a recuperação
-      
       if (!userId) {
         console.error('Usuário não está autenticado.');
         return;
       }
-      
-      axios.post(`http://localhost:8080/newachado/${userId}`, lostfoundData)
+
+      axios.post(`http://localhost:8080/newachado/${userId}`, itemData)
         .then(response => {
           console.log(response.data);
-          this.lostfounds.push(response.data);
+          this.items.push(response.data);
           this.resetForm();
           this.closeModal();
+          this.setNotification('Achado registrado com sucesso', 'success');
         })
         .catch(error => {
           console.error('Erro ao enviar dados:', error);
         });
     },
-    updateItem(lostfoundData) {
-      axios.put(`http://localhost:8080/putachado/${this.editId}`, lostfoundData)
+    updateItem(itemData) {
+      const today = new Date().toISOString().split('T')[0];
+      if (itemData.data < today) {
+        this.setNotification('A data do achado não pode ser anterior ao dia de hoje.', 'danger');
+        return;
+      }
+
+      axios.put(`http://localhost:8080/putachado/${this.editId}`, itemData)
         .then(response => {
           console.log('Atualizado com sucesso:', response.data);
-          const index = this.lostfounds.findIndex(item => item.id === this.editId);
+          const index = this.items.findIndex(item => item.id === this.editId);
           if (index !== -1) {
-            this.lostfounds.splice(index, 1, response.data);
+            this.items.splice(index, 1, response.data);
           }
           this.resetForm();
           this.closeModal();
+          this.setNotification('Achado atualizado com sucesso', 'success');
         })
         .catch(error => {
           console.error('Erro ao atualizar:', error);
@@ -151,7 +176,8 @@ export default {
         axios.delete(`http://localhost:8080/deleteachado/${id}`)
           .then(response => {
             console.log('Excluído com sucesso:', response.data);
-            this.lostfounds = this.lostfounds.filter(lostfound => lostfound.id !== id);
+            this.items = this.items.filter(item => item.id !== id);
+            this.setNotification('Achado excluído com sucesso', 'success');
           })
           .catch(error => {
             console.error('Erro ao excluir:', error);
@@ -171,18 +197,17 @@ export default {
   },
   mounted() {
     const userId = this.getUserId();
-   
     if (!userId) {
       console.error('Usuário não está autenticado.');
       return;
     }
- 
-    axios.get(`http://localhost:8080/achadolistuser/${userId}`)
+    
+    axios.get(`http://localhost:8080/achadosperdidosuser/${userId}`)
       .then(response => {
-        this.lostfounds = response.data;
+        this.items = response.data;
       })
       .catch(error => {
-        console.error('Erro ao carregar:', error);
+        console.error('Erro ao carregar achados e perdidos:', error);
       });
   }
 }
@@ -433,5 +458,27 @@ td button i {
 
 td button i:first-child {
   margin-right: 10px;
+}
+
+.alert {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  z-index: 1000;
+  display: inline-block;
+}
+
+.alert-success {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.alert-danger {
+  background-color: #f44336;
+  color: white;
 }
 </style>
